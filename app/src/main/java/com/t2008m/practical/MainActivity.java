@@ -18,6 +18,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     AppDatabase db;
     RecyclerView recyclerView;
     Employee employee;
+    EmployeeAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,11 +32,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         updateBtn = findViewById(R.id.updateBtn);
         deleteBtn = findViewById(R.id.deleteBtn);
         addBtn.setOnClickListener(this);
+        recyclerView = findViewById(R.id.rcv);
         List<Employee> employees = db.employeeDao().findAll();
-//        EmployeeAdapter adapter = new EmployeeAdapter(this,employees);
-//        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this,RecyclerView.VERTICAL,false);
-//        recyclerView.setLayoutManager(layoutManager);
-//        recyclerView.setAdapter(adapter);
+        adapter = new EmployeeAdapter(this, employees);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(adapter);
     }
 
     @Override
@@ -62,8 +64,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         if (db.employeeDao().delete(employee) > 0) {
             Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show();
-
             employee = null;
+            reloadData();
         }
     }
 
@@ -74,25 +76,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         if (db.employeeDao().update(employee) > 0) {
             Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show();
-
             employee = null;
+            reloadData();
+
         }
     }
 
     private void add() {
         int salary = 0;
-        if (Integer.parseInt(edSalary.getText().toString())>0){
-            salary=Integer.parseInt(edSalary.getText().toString());
+        if (Integer.parseInt(edSalary.getText().toString()) > 0) {
+            salary = Integer.parseInt(edSalary.getText().toString());
         }
         employee = new Employee(edName.getText().toString(), edDesign.getText().toString(), salary);
         long id = db.employeeDao().insert(employee);
         if (id > 0) {
             Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show();
             employee = null;
+            reloadData();
         } else {
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show();
 
         }
+    }
+
+    public void reloadData() {
+        List<Employee> employees = db.employeeDao().findAll();
+        adapter.reloadData(employees);
+        adapter.notifyDataSetChanged();
+
     }
 
     public void getInfoEmployee(int id) {
@@ -101,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         edDesign.setText(employee.getDesign());
         edSalary.setText(employee.getSalary());
     }
+
     public void reset(int id) {
         employee = db.employeeDao().findById(id);
         edName.setText("");

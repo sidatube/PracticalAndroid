@@ -1,7 +1,6 @@
 package com.t2008m.practical;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -22,7 +21,10 @@ public class EmployeeAdapter extends RecyclerView.Adapter {
         this.activity = activity;
         this.employees = employees;
     }
-
+    public void reloadData(List<Employee> employees){
+        this.employees = employees;
+        Toast.makeText(activity,"ok",Toast.LENGTH_SHORT).show();
+    }
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -41,14 +43,17 @@ public class EmployeeAdapter extends RecyclerView.Adapter {
 
             }
         });
-
+        vh.tvName.setText(model.getName());
+        vh.tvDesign.setText(model.getDesign());
+        vh.tvSalary.setText(model.getSalary()+"");
     }
 
     @Override
     public int getItemCount() {
-        return 0;
+        return employees.size();
     }
-    public class EmployeeHolder extends RecyclerView.ViewHolder implements View.OnClickListener,View.OnLongClickListener {
+
+    public class EmployeeHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
         private ItemClickListener itemClickListener;
         TextView tvName, tvDesign, tvSalary;
 
@@ -61,19 +66,18 @@ public class EmployeeAdapter extends RecyclerView.Adapter {
             tvSalary = itemView.findViewById(R.id.tvSalary);
         }
 
-        public void setItemClickListener(ItemClickListener itemClickListener)
-        {
+        public void setItemClickListener(ItemClickListener itemClickListener) {
             this.itemClickListener = itemClickListener;
         }
 
         @Override
         public void onClick(View v) {
-            itemClickListener.onClick(v,getAdapterPosition(),false);
+            itemClickListener.onClick(v, getAdapterPosition(), false);
         }
 
         @Override
         public boolean onLongClick(View v) {
-            itemClickListener.onClick(v,getAdapterPosition(),true);
+            itemClickListener.onClick(v, getAdapterPosition(), true);
             return true;
         }
     }
