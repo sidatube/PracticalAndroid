@@ -4,11 +4,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.t2008m.practical.util.ItemClickListener;
 
 import java.util.List;
 
@@ -18,6 +21,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     AppDatabase db;
     RecyclerView recyclerView;
     Employee employee;
+    List<Employee> employees;
     EmployeeAdapter adapter;
 
     @Override
@@ -32,14 +36,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         updateBtn = findViewById(R.id.updateBtn);
         deleteBtn = findViewById(R.id.deleteBtn);
         addBtn.setOnClickListener(this);
+        updateBtn.setOnClickListener(this);
+        deleteBtn.setOnClickListener(this);
         recyclerView = findViewById(R.id.rcv);
-        List<Employee> employees = db.employeeDao().findAll();
+        employees = db.employeeDao().findAll();
         adapter = new EmployeeAdapter(this, employees);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
+        adapter.setItemClickListener(new ItemClickListener() {
+            @Override
+            public void onClick(View view, int position, boolean isLongClick) {
+                employee = employees.get(position);
+                getInfoEmployee(employee);
+            }
+        });
     }
 
+    @SuppressLint("NonConstantResourceId")
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
@@ -60,11 +74,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void delete() {
         if (employee == null) {
             Toast.makeText(this, "No Employee", Toast.LENGTH_SHORT).show();
-
+return;
         }
         if (db.employeeDao().delete(employee) > 0) {
             Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show();
-            employee = null;
             reloadData();
         }
     }
@@ -72,26 +85,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void update() {
         if (employee == null) {
             Toast.makeText(this, "No Employee", Toast.LENGTH_SHORT).show();
-
+            return;
         }
-        if (db.employeeDao().update(employee) > 0) {
+        employee.setName(edName.getText().toString());
+        employee.setDesign(edDesign.getText().toString());
+        employee.setSalary(Integer.parseInt(edSalary.getText().toString()));
+        int id =db.employeeDao().update(employee);
+        if ( id> 0) {
             Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show();
-            employee = null;
             reloadData();
 
         }
     }
 
     private void add() {
-        int salary = 0;
-        if (Integer.parseInt(edSalary.getText().toString()) > 0) {
-            salary = Integer.parseInt(edSalary.getText().toString());
-        }
+        int salary = Math.max(Integer.parseInt(edSalary.getText().toString()), 0);
         employee = new Employee(edName.getText().toString(), edDesign.getText().toString(), salary);
         long id = db.employeeDao().insert(employee);
         if (id > 0) {
             Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show();
-            employee = null;
             reloadData();
         } else {
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show();
@@ -99,22 +111,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     public void reloadData() {
-        List<Employee> employees = db.employeeDao().findAll();
+        employees = db.employeeDao().findAll();
         adapter.reloadData(employees);
         adapter.notifyDataSetChanged();
+        reset();
 
     }
 
-    public void getInfoEmployee(int id) {
-        employee = db.employeeDao().findById(id);
+    @SuppressLint("SetTextI18n")
+    public void getInfoEmployee(Employee employee) {
         edName.setText(employee.getName());
         edDesign.setText(employee.getDesign());
-        edSalary.setText(employee.getSalary());
+        edSalary.setText(employee.getSalary()+"");
     }
 
-    public void reset(int id) {
-        employee = db.employeeDao().findById(id);
+    public void reset() {
+        employee = null;
         edName.setText("");
         edDesign.setText("");
         edSalary.setText("");

@@ -16,15 +16,22 @@ import java.util.List;
 public class EmployeeAdapter extends RecyclerView.Adapter {
     private Activity activity;
     private List<Employee> employees;
+    private ItemClickListener itemClickListener;
+
 
     public EmployeeAdapter(Activity activity, List<Employee> employees) {
         this.activity = activity;
         this.employees = employees;
     }
-    public void reloadData(List<Employee> employees){
-        this.employees = employees;
-        Toast.makeText(activity,"ok",Toast.LENGTH_SHORT).show();
+
+    public void setItemClickListener(ItemClickListener clickListener) {
+        this.itemClickListener = clickListener;
     }
+
+    public void reloadData(List<Employee> employees) {
+        this.employees = employees;
+    }
+
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -37,15 +44,10 @@ public class EmployeeAdapter extends RecyclerView.Adapter {
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         EmployeeHolder vh = (EmployeeHolder) holder;
         Employee model = employees.get(position);
-        vh.setItemClickListener(new ItemClickListener() {
-            @Override
-            public void onClick(View view, int position, boolean isLongClick) {
 
-            }
-        });
         vh.tvName.setText(model.getName());
         vh.tvDesign.setText(model.getDesign());
-        vh.tvSalary.setText(model.getSalary()+"");
+        vh.tvSalary.setText(model.getSalary() + "");
     }
 
     @Override
@@ -53,32 +55,22 @@ public class EmployeeAdapter extends RecyclerView.Adapter {
         return employees.size();
     }
 
-    public class EmployeeHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
-        private ItemClickListener itemClickListener;
+    public class EmployeeHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvDesign, tvSalary;
 
         public EmployeeHolder(@NonNull View itemView) {
             super(itemView);
-            itemView.setOnClickListener(this);
-            itemView.setOnLongClickListener(this);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    itemClickListener.onClick(view,getAdapterPosition(),false);
+                }
+            });
             tvName = itemView.findViewById(R.id.tvName);
             tvDesign = itemView.findViewById(R.id.tvDesign);
             tvSalary = itemView.findViewById(R.id.tvSalary);
         }
 
-        public void setItemClickListener(ItemClickListener itemClickListener) {
-            this.itemClickListener = itemClickListener;
-        }
 
-        @Override
-        public void onClick(View v) {
-            itemClickListener.onClick(v, getAdapterPosition(), false);
-        }
-
-        @Override
-        public boolean onLongClick(View v) {
-            itemClickListener.onClick(v, getAdapterPosition(), true);
-            return true;
-        }
     }
 }
